@@ -1,0 +1,40 @@
+usage:
+
+    historyStorage = PyTablesTimeSeries(historyFilepath)
+    # write:
+    self.historyStorage.append(keyName, fieldName, duration, value, timestamp)
+    # read:
+    selection = self.historyStorage.selectTimeSlice(keyName, fieldName, duration, begin_time, end_time)
+
+
+currently isn't very useful because after running for two minutes or so under load (multithreaded, although i don't see why that should matter because i'm doing everything in a lock, unless PyTables is keeping a global cache itself), i keep getting errors like this (the line numbers from this project have changed since this error was captured):
+
+  File "atr/pytablestimeseries.py", line 94, in _wrap
+    kw['table'] = self._getTable(item, field, duration)
+  File "atr/pytablestimeseries.py", line 42, in _getTable
+    durationGroup = getattr(root, str(duration))
+  File "/usr/lib/python2.7/dist-packages/tables/group.py", line 826, in __getattr__
+    return self._f_getChild(name)
+  File "/usr/lib/python2.7/dist-packages/tables/group.py", line 700, in _f_getChild
+    return self._v_file._getNode(childPath)
+  File "/usr/lib/python2.7/dist-packages/tables/file.py", line 1035, in _getNode
+    "stale weak reference to dead node ``%s``" % nodePath
+AssertionError: stale weak reference to dead node ``/0``
+
+
+note that line 97 of _wrap is AFTER i have closed and reopened the file! So i don't see why it isn't reset. I'm using Ubuntu package libhdf5-serial-1.8.4 version 1.8.4-patch1-2ubuntu3, and PyTables 2.3.1.
+
+
+
+
+other time series persistence packages for python:
+
+http://pytseries.sourceforge.net/lib.database.html
+
+
+some commands useful for installing:
+    pip install decorator # http://pypi.python.org/pypi/decorator
+    sudo aptitude install python-numexpr
+    http://sourceforge.net/projects/pytables/files/pytables/2.3.1/
+    sudo dpkg -i ~root/python-tables_2.3.1-1.1_amd64.deb
+
